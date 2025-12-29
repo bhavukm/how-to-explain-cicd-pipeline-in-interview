@@ -1,6 +1,6 @@
 # How to explain an End-To-End DevOps CI/CD project in an interview?
 
-**YouTube Video URL:**
+**YouTube Video URL:** https://youtu.be/HQN7eYdfK1w
 
 **How to explain an End-To-End DevOps CI/CD project in an interview?**
 
