@@ -14,17 +14,15 @@
 
 **Application Layer being managed by the project:** Backend
 
-In this example, I am using the following tools stack/methodology:
+Tools Stack and Methodology Used:
 
-We are using a GitLab source code repository, which will have all application source code files, a Dockerfile to build a container image, and then update the helm chart and push both to the AWS ECR repository.
+We use **GitLab SaaS CI/CD** to build, validate, scan, and promote **Java Spring Boot** applications using a shift-left DevSecOps approach.
 
-Once the AWS ECR repository has the new helm chart, ArgoCD will deploy that to the AWS EKS Cluster.
+Container images are built with Maven and Docker, stored in **Amazon ECR**, and deployed to **AWS EKS** using a **GitOps model with ArgoCD**, without direct cluster access from the pipeline.
 
-<img width="1628" height="365" alt="image" src="https://github.com/user-attachments/assets/ff2b47a8-7d95-425f-b2d4-71757f17701c" />
+Security, policy checks, and controlled promotions ensure only scanned and approved artifacts reach the cluster.
 
-
-
-For deploying our infrastructure, we utilize Terraform IaC that has been integrated within our CI/CD pipeline to create or modify infrastructure depending on the pipeline stage.
+Shift-left DevSecOps means **checking security, quality, and policies early in the pipeline instead of waiting until after deployment**.
 
 **DevOps Stages explanation:**
 
