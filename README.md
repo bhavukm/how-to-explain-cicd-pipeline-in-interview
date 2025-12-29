@@ -14,7 +14,7 @@
 
 **Application Layer being managed by the project:** Backend
 
-Tools Stack and Methodology Used:
+**Tools Stack and Methodology Used:**
 
 We use **GitLab SaaS CI/CD** to build, validate, scan, and promote **Java Spring Boot** applications using a shift-left DevSecOps approach.
 
@@ -177,7 +177,7 @@ The folder structure of the repo will be something like this:
 ![image](https://github.com/user-attachments/assets/ea816416-3eb2-4d56-ae3f-3596f10758e5)
 
 
-**Deployment and Approval Approach**
+**Deployment and Approval Approach:**
 
 We follow a progressive promotion model using the same pipeline and the same Helm chart version across environments. A new Helm chart version is first deployed to the Dev cluster, then promoted to QA, and 
 
