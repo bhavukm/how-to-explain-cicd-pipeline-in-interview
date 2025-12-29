@@ -1,10 +1,10 @@
 # explain-devops-cicd-project
 
-**YouTube Video URL: https://youtu.be/vHd18cwh-iE**
+**YouTube Video URL:**
 
-**How to explain a DevOps CICD project in an interview?**
+**How to explain an End-To-End DevOps CI/CD project in an interview?**
 
-**Interview Question:** Explain the workflow of an End-To-End DevOps CICD Project that you have managed.
+**Interview Question:** Explain the workflow of an End-To-End DevOps CI/CD Pipeline Project that you have managed.
 
 **Answer:-**
 
