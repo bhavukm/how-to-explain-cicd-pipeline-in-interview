@@ -177,7 +177,19 @@ The folder structure of the repo will be something like this:
 ![image](https://github.com/user-attachments/assets/ea816416-3eb2-4d56-ae3f-3596f10758e5)
 
 
-Similarly, to deploy the qa version to prod, we will have another file for prod configuration, and it will trigger a production pipeline. However, it will also have a **Manual Approval** stage to approve the deployment. So, we can say that we are using **Continuous Delivery** methodology and **NOT Continuous Deployment** in production.
+**Deployment and Approval Approach**
+
+We follow a progressive promotion model using the same pipeline and the same Helm chart version across environments. A new Helm chart version is first deployed to the Dev cluster, then promoted to QA, and 
+
+finally to Production, ensuring the exact same artifact is used everywhere.
+
+Before promoting from QA to Production, we enforce a manual approval step in the pipeline. This approval acts as a controlled gate where an authorized user reviews test results, validations, and release 
+
+readiness before allowing the production deployment to proceed.
+
+Technically, this is achieved by marking the production promotion step as manual in the same GitLab pipeline. Once approved, the pipeline continues with the existing deployment steps, updating GitOps 
+
+configuration and allowing ArgoCD to deploy the already-approved Helm chart version to the Production cluster. This keeps the process consistent, auditable, and safe without introducing a separate pipeline.
 
 **What do you still need to learn so that you can answer questions on this project?**
 
