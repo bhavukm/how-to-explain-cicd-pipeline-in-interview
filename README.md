@@ -28,70 +28,149 @@ Shift-left DevSecOps means **checking security, quality, and policies early in t
 
 <img width="1628" height="365" alt="image" src="https://github.com/user-attachments/assets/f4509305-169b-4264-acd4-7a4e3c7274f8" />
 
-**Stage 1: Platform checks (Kubernetes Cluster)**
+## 1. **setup**
 
-If I am deploying it to Dev, then my AWS EKS Cluster in the dev account should be up and running, the worker nodes should be in Ready state, the critical system components (like CoreDNS, kube-proxy, api-server, etc) should be working.
+### **ecr-repo-check**
 
-**Stage 2: Validate (Dockerfile, Kubernetes syntax checks, policies, Snyk SAST [Static Application Security Testing])**
+This step checks whether the required Amazon ECR repository already exists.
 
-Now, this stage will test whether your Dockerfile is present in the repo and any Kubernetes-based YAML manifest, including a helm chart (if using one), are correct syntax-wise. 
+If the repository is missing, it is created so later image build and push steps do not fail.
 
-It can also test the Kubernetes policies. We may tell that we are using a tool like Kyverno, which can restrict stuff like “Restrict creation of pods with elevated permissions or Does the pod satisfy resource limits?”
+### **eks-check**
 
-Next, we have integrated the Snyk tool within our pipeline to perform SAST on our code to identify code vulnerabilities
+This validates that the target EKS cluster is reachable and correctly configured.
 
-**Stage 3: build artifact (maven or gradle)**
+It verifies AWS credentials, kubeconfig access, and basic cluster connectivity.
 
-A build artifact is the final packaged version of your application, ready to be deployed. It could be a .jar file, .war file, .zip, .tar.gz, or even a Docker image.
+## 2. **validate**
 
-In the third stage of our CI/CD pipeline, once the code has passed code quality checks and unit tests, we initiate the build process. We use Maven (or Gradle, depending on the project) to compile the source code, resolve dependencies, and generate a build artifact, typically a .jar or .war file. This artifact becomes the core output of the build phase and is what we deploy to our dev, test, and production environments.
+### **dockerfile_lint_check**
 
-Maven and Gradle are tools that automate the process of building Java applications. It:
+This scans the Dockerfile for bad practices like using `latest` tags, running as root, or inefficient layers.
 
-•	Compile your code
+The goal is to catch security and performance issues before the image is built.
 
-•	Resolve and download any external libraries your app needs (called dependencies)
+### **k8s_policy_check**
 
-•	Run unit tests
+This validates Kubernetes manifests against cluster-level security and governance policies.
 
-•	Package everything into a deployable file (artifact)
+It ensures only compliant workloads are allowed to move further in the pipeline.
 
-**Stage 4: package (build Dockerfile, add meta to image, build Helm chart, push to AWS ECR)**
+### **k8s_deprecated_apis_check**
 
-•	build_dockerfile - Containerizing the App
+This checks Kubernetes YAML files for APIs that are deprecated or removed in newer Kubernetes versions.
 
-•	add meta to image - tag your docker image: use variables like $AWS_ECR_URI:$commit_id
+It helps prevent future deployment failures during EKS cluster upgrades.
 
-•	Build helm chart – Preparing Kubernetes Deployment
+### **k8s_syntax_check**
 
-•	push image and chart to AWS ECR
+This performs syntax and schema validation of Kubernetes manifests.
 
-**Stage 5: Scan container image with Snyk**
+It ensures YAML files are structurally correct and won’t fail at deployment time.
 
-•	Check if any of the software packages inside the image have known security issues (CVE IDs).
+## 3. **build**
 
-•	See if the image has any outdated libraries or risky dependencies.
+### **build_with_maven**
 
-•	Report anything suspicious, just like how antivirus software shows a list of threats.
+This runs `mvn clean package` using the `pom.xml` to compile and test the Spring Boot application.
 
-**Stage 6: Promote to Dev cluster**
+The output is a versioned JAR file that will be used to build the container image.
 
-•	Create a config.yaml file with terraform version and helm-chart version:
-_service:
-  service-name:
-     version: helm-chart-version
-terraform:
-     version: tf-version_
+## 4. **package**
 
-•	Push the config to another GitLab repo.
+### **build_dockerfile**
 
-•	ArgoCD detects a new Helm chart version and starts to deploy it to the dev cluster
+This builds the Docker image using the compiled Spring Boot JAR and Dockerfile.
 
-•	Run post-deployment tests if deployed successfully
+The image is tagged with a commit SHA or build number for traceability.
 
-•	Check on ArgoCD UI the status of pods, services, statefulsets, configmaps, etc.
+### **build_helm_chart**
 
-If we need to deploy the dev helm chart to qa (test) environment, we will create a new configuration file for qa and update the version there. This will trigger another pipeline for qa, which takes the dev helm version and deploys to the AWS EKS cluster in qa AWS account.
+This packages the Helm chart that defines how the application runs on Kubernetes.
+
+Environment-specific values like image tag, replicas, and resources are templated.
+
+### **build_image_meta**
+
+This generates image metadata such as digest, tags, commit ID, and build timestamp.
+
+This metadata is later used for promotion, auditing, and GitOps-based deployments.
+
+## 5. **scan**
+
+### **scan_image**
+
+This performs a security scan on the container image to detect OS and library vulnerabilities.
+
+It ensures vulnerable images never reach the Kubernetes cluster.
+
+### **sign_helm_chart**
+
+This cryptographically signs the Helm chart to prove its integrity and source.
+
+Only trusted charts are allowed to be deployed downstream.
+
+### **sign_image**
+
+This signs the container image so the cluster can verify it was built by this pipeline.
+
+It prevents tampered or untrusted images from being deployed.
+
+### **trivy_pipeline_scan**
+
+This runs Trivy against the image, filesystem, and configuration.
+
+The pipeline fails if critical vulnerabilities exceed defined thresholds.
+
+### **trivy_sbom_scan**
+
+This generates and scans a Software Bill of Materials (SBOM).
+
+It provides full dependency visibility for compliance and security audits.
+
+## 6. **promote**
+
+### **promote-to-dev-eks-cluster**
+
+This logically promotes the image and Helm chart to the Dev environment.
+
+The artifact is not rebuilt, ensuring the same immutable image is promoted.
+
+### **tag_build**
+
+This applies to environment-specific tags such as `dev` or `release-candidate`.
+
+Tags make it easy to track exactly what version is running in each environment.
+
+## 7. **deploy**
+
+### **generate-deploy-config**
+
+This updates GitOps configuration with the new image tag and Helm values.
+
+The change is committed to the Git repository monitored by ArgoCD.
+
+### **trigger-deploy**
+
+Once the Git change is pushed, ArgoCD detects it and syncs the desired state to the cluster.
+
+No direct `kubectl apply` is performed from the pipeline.
+
+## 8. **deploy-batch-1**
+
+### **appname-dev**
+
+This deploys the application to the Dev namespace in controlled batches.
+
+Batch-based deployment reduces risk by limiting the blast radius during rollout.
+
+## 9. **post-service-test**
+
+### **post-service-test (smoke / functional tests)**
+
+This runs automated smoke and functional tests using a Python script against live endpoints.
+
+It confirms the application is reachable and core functionality works as expected.
 
 The folder structure of the repo will be something like this:
 
