@@ -1,4 +1,4 @@
-# explain-devops-cicd-project
+# How to explain an End-To-End DevOps CI/CD project in an interview?
 
 **YouTube Video URL:**
 
@@ -20,7 +20,8 @@ We are using a GitLab source code repository, which will have all application so
 
 Once the AWS ECR repository has the new helm chart, ArgoCD will deploy that to the AWS EKS Cluster.
 
-![image](https://github.com/user-attachments/assets/ecbc050d-6622-46d4-b58f-9fee56bb14a2)
+<img width="1628" height="365" alt="image" src="https://github.com/user-attachments/assets/ff2b47a8-7d95-425f-b2d4-71757f17701c" />
+
 
 
 For deploying our infrastructure, we utilize Terraform IaC that has been integrated within our CI/CD pipeline to create or modify infrastructure depending on the pipeline stage.
