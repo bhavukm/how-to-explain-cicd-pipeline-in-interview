@@ -26,8 +26,7 @@ Shift-left DevSecOps means **checking security, quality, and policies early in t
 
 **DevOps Stages explanation:**
 
-![image](https://github.com/user-attachments/assets/beba5356-36cf-4fa6-8944-f6a72f7d269d)
-
+<img width="1628" height="365" alt="image" src="https://github.com/user-attachments/assets/f4509305-169b-4264-acd4-7a4e3c7274f8" />
 
 **Stage 1: Platform checks (Kubernetes Cluster)**
 
